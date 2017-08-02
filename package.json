@@ -1,0 +1,34 @@
+{
+  "name": "homebridge-avea-bulb",
+  "version": "0.0.1",
+  "description": "Avea bulb plugin for homebridge: https://github.com/nfarina/homebridge",
+  "license": "ISC",
+  "keywords": [
+    "homebridge-plugin",
+    "Avea",
+    "Bulb",
+    "Bluetooth"
+  ],
+  "engines": {
+    "node": ">=0.12.0",
+    "homebridge": ">=0.2.0"
+  },
+  "author": "kounch",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kounch/homebridge-avea-bulb.git"
+  },
+  "dependencies": {
+    "mutex-promise": "^0.1.0",
+    "noble": "^1.3.0",
+    "promise-queue": "^2.2.2",
+    "winston": "^2.1.1"
+  },
+  "bugs": {
+    "url": "https://github.com/kounch/homebridge-avea-bulb/issues"
+  },
+  "homepage": "https://github.com/kounch/homebridge-avea-bulb#readme",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {}
+}
