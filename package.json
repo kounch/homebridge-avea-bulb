@@ -1,6 +1,6 @@
 {
   "name": "homebridge-avea-bulb",
-  "version": "0.0.2",
+  "version": "1.0.0",
   "description": "Avea bulb plugin for homebridge: https://github.com/nfarina/homebridge",
   "license": "ISC",
   "keywords": [
