@@ -1,6 +1,6 @@
 /*
 homebridge-avea-bulb
-Version 0.0.2
+Version 1.0.0
 
 Avea bulb plugin for homebridge: https://github.com/nfarina/homebridge
 Using Node.js Avea Bulb Prototol: https://github.com/Marmelatze/avea_bulb/tree/avea_server
@@ -80,7 +80,7 @@ function AveaBulbAccessory(log, config) {
     // Hue: Float (0.00:360.00)
     this.Hue = 0.00;
     // Saturation: Float (0.00:100.00)
-    this.Saturation = 0.00;
+    this.Saturation = 100.00;
 
     this.service = new Service.Lightbulb(this.name);
 }
@@ -89,44 +89,43 @@ AveaBulbAccessory.prototype = {
     // Noble State Change
     nobleStateChange: function (state) {
         if (state == "poweredOn") {
-            this.log.info("Starting Noble scan..");
+            this.log("Starting Noble scan..");
             Noble.startScanning(serviceUUID, false);
             this.scanning = true;
             Noble.on("discover", this.nobleDiscovered.bind(this));
         } else {
-            this.log.info("Noble state change to " + state + "; stopping scan.");
+            this.log("Noble state change to " + state + "; stopping scan.");
             Noble.stopScanning();
             this.scanning = false;
         }
     },
     // Noble Discovery
     nobleDiscovered: function (peripheral) {
-        this.log("discovered ", peripheral.uuid);
+        this.log("Discovered:", peripheral.uuid);
         if (this.perifSel == null) {
             if ((peripheral.uuid == this.bluetoothid) || (this.bluetoothid == null)) {
                 this.perifSel = peripheral;
-                this.log("uuid matches *****");
+                this.log("UUID matches!");
                 this.bulb = new AveaBulb.Avea(this.perifSel);
                 this.bulb.connect();
-                this.log("bulb.connect was called...");
             }
         } else {
             // do a reconnect if uuid matches
             if (peripheral.uuid == this.bluetoothid) {
-                this.log("lost bulb appears again!");
+                this.log("Lost bulb appears again!");
                 this.perifSel = peripheral;
                 if (this.perifSel.state != "connected") {
                     this.bulb = new AveaBulb.Avea(this.perifSel);
                     this.bulb.connect();
                 } else {
-                    this.log("undefined state ##############");
+                    this.log("Undefined state");
                 }
             }
         }
     },
     // Noble Stop Scan
     nobleScanStop: function () {
-        this.log("scanStop received");
+        this.log("ScanStop received");
         if (this.perifSel == null && maxNoOfSeqScans > noOfSeqScans++) {
             //Retry scan
             Noble.startScanning(serviceUUID, false);
@@ -232,13 +231,14 @@ AveaBulbAccessory.prototype = {
     },
     //Send color to bulb
     sendToLight: function (posValue, callback) {
-        this.log("Send to light:", posValue);
         if ((this.perifSel != null) && (this.perifSel.state == "connected") && (this.bulb.connected == true)) {
             if (posValue == true) {
                 //Saturation + Value: 0-100 -> 0-1
                 var myRGBW = this.HSVtoRGBW(this.Hue, this.Saturation / 100.0, this.Brightness / 100.0);
+                //this.log("Send to light WRGB:", myRGBW[3], myRGBW[0], myRGBW[1], myRGBW[2]);
                 this.bulb.setColor(new AveaBulb.Color(myRGBW[3], myRGBW[0], myRGBW[1], myRGBW[2]), 0x00f);
             } else {
+                //this.log("Send to light:", off);
                 this.bulb.setColor(new AveaBulb.Color(0x000, 0x000, 0x000, 0x000), 0x4ff);
                 this.bChangeSth = false;
             }
@@ -247,7 +247,6 @@ AveaBulbAccessory.prototype = {
             if (!this.scanning) {
                 Noble.startScanning(serviceUUID, false)
             };
-            this.log("Device not Ready");
             callback(new Error("Device not Ready"));
         }
     },
@@ -260,7 +259,7 @@ AveaBulbAccessory.prototype = {
                 var myGreen = parseInt(data[1].target.green);
                 var myBlue = parseInt(data[1].target.blue);
                 var myWhite = parseInt(data[1].target.white);
-                this.log("RGBW:", myRed, myGreen, myBlue, myWhite);
+                //this.log("RGBW:", myRed, myGreen, myBlue, myWhite);
                 //Brightness 0-4095 -> 0-100
                 var myBrightness = parseInt(data[2] * 100 / 4095);
                 //Hue
@@ -270,7 +269,7 @@ AveaBulbAccessory.prototype = {
                 var mySaturation = myHSV[1] * 100.0;
                 //Not used
                 var myValue = myHSV[2];
-                this.log("HSB:", myHue, mySaturation, myBrightness);
+                //this.log("HSB:", myHue, mySaturation, myBrightness);
                 //Calculate Power State
                 var bCheckColor = ((myWhite == 0) && (myRed == 0) && (myGreen == 0) && (myBlue == 0));
                 var myPowerOn = true;
@@ -280,14 +279,12 @@ AveaBulbAccessory.prototype = {
 
                 callback(null, myPowerOn, myBrightness, myHue, mySaturation);
             }).catch(e => {
-                this.log(e);
                 callback(e);
             });
         } else {
             if (!this.scanning) {
                 Noble.startScanning(serviceUUID, false)
             };
-            this.log("Device not Ready");
             callback(new Error("Device not Ready"));
         }
     },
@@ -300,7 +297,6 @@ AveaBulbAccessory.prototype = {
     getOn: function (callback) {
         this.getFromLight(function (error, powerOn, brightness, hue, saturation) {
             if (error) {
-                this.log("Get command function failed:", error);
                 callback(error, this.On);
             } else {
                 this.On = powerOn;
@@ -319,22 +315,21 @@ AveaBulbAccessory.prototype = {
             if ((value == false) || (this.bChangeSth == false)) {
                 this.sendToLight(value, function (error) {
                     if (error) {
-                        this.log("Send command function failed:", error);
                         this.On = oldState;
                         callback(error);
                     } else {
-                        //this.log("Send command function succeeded");
+                        callback(null);
                     }
                 }.bind(this));
+            } else {
+                callback();
             }
-            callback();
         }
     },
     // Optional
     getBrightness: function (callback) {
         this.getFromLight(function (error, powerOn, brightness, hue, saturation) {
             if (error) {
-                this.log("Get command function failed:", error);
                 callback(error, this.Brightness);
             } else {
                 this.Brightness = brightness;
@@ -358,7 +353,6 @@ AveaBulbAccessory.prototype = {
                 if (!this.scanning) {
                     Noble.startScanning(serviceUUID, false)
                 };
-                this.log("Device not Ready");
                 callback(new Error("Device not Ready"));
             }
         }
@@ -366,7 +360,6 @@ AveaBulbAccessory.prototype = {
     getHue: function (callback) {
         this.getFromLight(function (error, powerOn, brightness, hue, saturation) {
             if (error) {
-                //this.log("Get command function failed:", error);
                 callback(error, this.Hue);
             } else {
                 this.Hue = hue;
@@ -385,7 +378,6 @@ AveaBulbAccessory.prototype = {
             this.Hue = value;
             this.sendToLight(true, function (error) {
                 if (error) {
-                    //this.log("Send command function failed:", error);
                     this.Hue = oldState;
                     callback(error);
                 }
