@@ -1,6 +1,6 @@
 /*
 homebridge-avea-bulb
-Version 0.0.1
+Version 0.0.2
 
 Avea bulb plugin for homebridge: https://github.com/nfarina/homebridge
 Using Node.js Avea Bulb Prototol: https://github.com/Marmelatze/avea_bulb/tree/avea_server
@@ -137,9 +137,9 @@ AveaBulbAccessory.prototype = {
     RGBtoHSV: function (R, G, B) {
         //Input and result scale
         var scale = 4095.0;
-        R /= scale;
-        G /= scale;
-        B /= scale;
+        R = parseFloat(R) / scale;
+        G = parseFloat(G) / scale;
+        B = parseFloat(B) / scale;
 
         //Max
         var M = Math.max(R, Math.max(G, B));
@@ -149,27 +149,27 @@ AveaBulbAccessory.prototype = {
         var C = M - m;
 
         //Hue (0-360)
-        var H1 = 0;
-        if (C != 0) {
+        var H1 = 0.0;
+        if (C != 0.0) {
             if (M == R) {
-                H1 = ((G - B) / C) % 6;
+                H1 = ((G - B) / C) % 6.0;
             } else if (M == G) {
-                H1 = ((B - R) / C) + 2;
+                H1 = ((B - R) / C) + 2.0;
             } else {
-                H1 = ((R - G) / C) + 4;
+                H1 = ((R - G) / C) + 4.0;
             }
         }
         H = H1 * 60.0;
-        if (H < 0) {
+        if (H < 0.0) {
             H = 180.0 - H;
         }
 
         //HSV
-        //lightness(0-1)
+        //lightness(0.0-1.0)
         V = M;
-        //saturation (0-1)
-        S = 0;
-        if (V != 0) {
+        //saturation (0.0-1.0)
+        S = 0.0;
+        if (V != 0.0) {
             S = C / V;
         }
         var HSV = [H, S, V];
@@ -187,25 +187,25 @@ AveaBulbAccessory.prototype = {
         if (H < 2.09439) {
             var cos_h = Math.cos(H);
             var cos_1047_h = Math.cos(1.047196667 - H);
-            var r = S * V / 3 * (1 + cos_h / cos_1047_h);
-            var g = S * V / 3 * (1 + (1 - cos_h / cos_1047_h));
-            var b = 0;
-            w = (1 - S) * V;
+            var r = S * V / 3.0 * (1.0 + cos_h / cos_1047_h);
+            var g = S * V / 3.0 * (1.0 + (1.0 - cos_h / cos_1047_h));
+            var b = 0.0;
+            w = (1.0 - S) * V;
         } else if (H < 4.188787) {
             H = H - 2.09439;
             var cos_h = Math.cos(H);
             var cos_1047_h = Math.cos(1.047196667 - H);
-            var g = S * V / 3 * (1 + cos_h / cos_1047_h);
-            var b = S * V / 3 * (1 + (1 - cos_h / cos_1047_h));
-            var r = 0;
-            var w = (1 - S) * V;
+            var g = S * V / 3.0 * (1.0 + cos_h / cos_1047_h);
+            var b = S * V / 3.0 * (1.0 + (1.0 - cos_h / cos_1047_h));
+            var r = 0.0;
+            var w = (1.0 - S) * V;
         } else {
             var H = H - 4.188787;
             var cos_h = Math.cos(H);
             var cos_1047_h = Math.cos(1.047196667 - H);
-            var b = S * V / 3 * (1 + cos_h / cos_1047_h);
-            var r = S * V / 3 * (1 + (1 - cos_h / cos_1047_h));
-            var g = 0;
+            var b = S * V / 3.0 * (1.0 + cos_h / cos_1047_h);
+            var r = S * V / 3.0 * (1.0 + (1.0 - cos_h / cos_1047_h));
+            var g = 0.0;
             var w = (1 - S) * V;
         }
         r *= scale;
@@ -223,11 +223,11 @@ AveaBulbAccessory.prototype = {
         var H = this.RGBtoHSV(r / scale, g / scale, b / scale)[0];
         var S = 0;
         if ((r + g + b + w) != 0) {
-            S = 1 - (w / (r + g + b + w));
+            S = 1.0 - (w / (r + g + b + w));
         }
         var V = (r + g + b + w) / scale;
 
-        var nHSI = [Math.round(H * 1000.0) / 1000, Math.round(S * 1000.0) / 1000, Math.round(V * 1000.0) / 1000];
+        var nHSI = [Math.round(H * 10000.0) / 10000, Math.round(S * 10000.0) / 10000, Math.round(V * 10000.0) / 10000];
         return (nHSI);
     },
     //Send color to bulb
@@ -237,9 +237,9 @@ AveaBulbAccessory.prototype = {
             if (posValue == true) {
                 //Saturation + Value: 0-100 -> 0-1
                 var myRGBW = this.HSVtoRGBW(this.Hue, this.Saturation / 100.0, this.Brightness / 100.0);
-                this.bulb.setColor(new AveaBulb.Color(myRGBW[3], myRGBW[0], myRGBW[1], myRGBW[2]), 0x0ff);
+                this.bulb.setColor(new AveaBulb.Color(myRGBW[3], myRGBW[0], myRGBW[1], myRGBW[2]), 0x00f);
             } else {
-                this.bulb.setColor(new AveaBulb.Color(0x000, 0x000, 0x000, 0x000), 0x5ff);
+                this.bulb.setColor(new AveaBulb.Color(0x000, 0x000, 0x000, 0x000), 0x4ff);
                 this.bChangeSth = false;
             }
             callback(null);
@@ -260,14 +260,17 @@ AveaBulbAccessory.prototype = {
                 var myGreen = parseInt(data[1].target.green);
                 var myBlue = parseInt(data[1].target.blue);
                 var myWhite = parseInt(data[1].target.white);
-                //Brightness 0-32 -> 0-100
-                var myBrightness = parseInt(data[2] * 100 / 32);
+                this.log("RGBW:", myRed, myGreen, myBlue, myWhite);
+                //Brightness 0-4095 -> 0-100
+                var myBrightness = parseInt(data[2] * 100 / 4095);
                 //Hue
                 var myHSV = this.RGBWtoHSV(myRed, myGreen, myBlue, myWhite);
                 var myHue = myHSV[0];
-                //Saturation 0-1 -> 0-100
+                //Saturation 0.00-1.00 -> 0-100
                 var mySaturation = myHSV[1] * 100.0;
+                //Not used
                 var myValue = myHSV[2];
+                this.log("HSB:", myHue, mySaturation, myBrightness);
                 //Calculate Power State
                 var bCheckColor = ((myWhite == 0) && (myRed == 0) && (myGreen == 0) && (myBlue == 0));
                 var myPowerOn = true;
@@ -345,8 +348,8 @@ AveaBulbAccessory.prototype = {
             callback();
         } else {
             this.log("setBrightness from/to:", this.Brightness, value);
-            //Brightness 0-100 -> 0-32
-            var brightValue = value * 32.0 / 100.0;
+            //Brightness 0-100 -> 0-4095
+            var brightValue = parseInt(value * 40.95);
             if ((this.perifSel != null) && (this.perifSel.state == "connected") && (this.bulb.connected == true)) {
                 this.bulb.setBrightness(brightValue);
                 this.Brightness = value;
