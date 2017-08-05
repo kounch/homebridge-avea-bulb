@@ -2,23 +2,28 @@
 Avea Bulb Plugin for [HomeBridge](https://github.com/nfarina/homebridge)
 
 
+---
+
+
+## English
+
 ### What this plugin does
 Using BLE, it adds Homekit support for Elgato Avea Bulbs.
 
 
 ### How this plugin works
-Using Node.js Avea Bulb Prototol: https://github.com/Marmelatze/avea_bulb/tree/avea_server and BLE, allows to control Elgato Avea Bulbs via Homekit.
+Using Node.js [Avea Bulb Prototol](https://github.com/Marmelatze/avea_bulb/tree/avea_server) and BLE, allows to control Elgato Avea Bulbs via Homekit.
 
 ### Things to know about this plugin
 
-# Installation
+### Installation
 0. Make sure that bluetooth is installed, enabled and available in your system
 1. Install homebridge using `npm install -g homebridge`.
 2. Install this plugin using `npm install -g --unsafe-perm homebridge-avea-bulb`.
 3. Update your configuration file. See configuration sample below.
 
 
-# Configuration
+### Configuration
 Edit your `config.json` accordingly. Configuration sample:
  ```
     "accessories": [
@@ -57,10 +62,74 @@ This step is not required.
 
 
 
-\*Changing the `name` in `config.json` will create a new device instead of renaming the existing one in HomeKit. It's strongly recommended that you rename the switch using a HomeKit app only.
+\*Changing the `name` in `config.json` will create a new device instead of renaming the existing one in HomeKit. It's strongly recommended that you rename the bulb using a HomeKit app only.
 
 
-### Copyright
+---
+
+
+## Castellano
+
+### Para qué sirve este plugin
+Añade soporte para Homekit a bombillas Elgato Avea, usando bluetooth (BLE).
+
+
+### Cómo funciona
+Usando el protocolo [Avea Bulb de Node.js](https://github.com/Marmelatze/avea_bulb/tree/avea_server) y bluetooth, permite controlar bombillas Elgato Avea a través de Homekit.
+
+### Más información
+
+### Instalación
+0. Debe haber instalado, activo y disponible, bluetooth en el sistema donde se vaya a instalar
+1. Instalar homebridge usando `npm install -g homebridge`.
+2. Instalar este plugin con el comando `npm install -g --unsafe-perm homebridge-avea-bulb`.
+3. Actualizar el fichero de configuración. Véase un ejemplo a continuación.
+
+
+### Configuración
+Editar el fichero `config.json` según se necesite. Ejemplo de configuración:
+ ```
+    "accessories": [
+        {
+            "accessory": "AveaBulb",
+            "name": "Bombilla Avea"
+        }
+    ],
+```
+
+
+### Configuración avanzada (opcional)
+Este paso no es necesario.
+ ```
+    "accessories": [
+        {
+            "accessory": "AveaBulb",
+            "name": "Lámpara de la sala de estar",
+            "manufacturer": "Elgato",
+            "model": "Avea",
+            "serialnumber": "Avea_7F14",
+            "bluetoothid": "001583d2147f"
+        }
+    ],
+```
+
+
+| Campos             | Descripción                                           | Requerido |
+|--------------------|-------------------------------------------------------|-----------|
+| accessory          | Siempre ha de ser `AveaBulb`.                         | Sí        |
+| name               | Nombre para el dispositivo.                           | No        |
+| manufacturer       | Fabricante del dispositivo.                           | No        |
+| model              | Modelo del dispositivo.                               | No        |
+| serialnumber       | Número de serie del dispositivo.                      | No        |
+| bluetoothid        | ID bluetooth de la bombillaof (núm. serie invertido)  | No        |
+
+
+
+\*Cambiar el nombre `name` en `config.json` creará un nuevo dispositivo en vez de renombrar el existente en Homekit. Se recomienda que sólo se cambie el nombre de la bombilla usando una App de HomeKit.
+
+
+
+## Copyright
 
 Copyright (c) 2017 kounch
 
