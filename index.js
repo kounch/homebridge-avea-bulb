@@ -1,6 +1,6 @@
 /*
 homebridge-avea-bulb
-Version 1.0.0
+Version 1.0.1
 
 Avea bulb plugin for homebridge: https://github.com/nfarina/homebridge
 Using Node.js Avea Bulb Prototol: https://github.com/Marmelatze/avea_bulb/tree/avea_server
@@ -276,7 +276,6 @@ AveaBulbAccessory.prototype = {
                 if (bCheckColor == true) {
                     myPowerOn = false;
                 }
-
                 callback(null, myPowerOn, myBrightness, myHue, mySaturation);
             }).catch(e => {
                 callback(e);
@@ -322,7 +321,7 @@ AveaBulbAccessory.prototype = {
                     }
                 }.bind(this));
             } else {
-                callback();
+                callback(null);
             }
         }
     },
@@ -380,9 +379,10 @@ AveaBulbAccessory.prototype = {
                 if (error) {
                     this.Hue = oldState;
                     callback(error);
+                } else {
+                    callback(null);
                 }
             }.bind(this));
-            callback();
         }
     },
     getSaturation: function (callback) {
@@ -408,9 +408,10 @@ AveaBulbAccessory.prototype = {
                 if (error) {
                     this.Saturation = oldState;
                     callback(error);
+                } else {
+                    callback(null);
                 }
             }.bind(this));
-            callback();
         }
     },
     getName: function (callback) {
