@@ -1,6 +1,6 @@
 /*
 homebridge-avea-bulb
-Version 1.0.1
+Version 1.0.2
 
 Avea bulb plugin for homebridge: https://github.com/nfarina/homebridge
 Using Node.js Avea Bulb Prototol: https://github.com/Marmelatze/avea_bulb/tree/avea_server
@@ -289,8 +289,31 @@ AveaBulbAccessory.prototype = {
     },
     //Start
     identify: function (callback) {
+        var delay = 500;
+        var count = 3;
         this.log("Identify requested!");
-        callback(null);
+        var oldState = this.Brightness;
+        this.getBrightness(function (error, curBright) {
+            if (!error) {
+                oldState = curBright;
+            }
+        });
+        for (var i = 0; i < count; i++) {
+            setTimeout(function () {
+                //this.log("Off");
+                this.setBrightness(0, function (error) { });
+            }.bind(this), delay * (1 + i * 2));
+
+            setTimeout(function () {
+                //this.log("On");
+                this.setBrightness(100, function (error) { });
+            }.bind(this), delay * (2 + i * 2));
+        }
+        setTimeout(function () {
+            //this.log("Old Brightness");
+            this.setBrightness(oldState, function (error) { });
+            callback(null);
+        }.bind(this), delay * ( 2 + count * 2));
     },
     // Required
     getOn: function (callback) {
