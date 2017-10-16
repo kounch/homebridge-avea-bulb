@@ -1,6 +1,6 @@
 /*
 homebridge-avea-bulb
-Version 1.0.2
+Version 1.0.3
 
 Avea bulb plugin for homebridge: https://github.com/nfarina/homebridge
 Using Node.js Avea Bulb Prototol: https://github.com/Marmelatze/avea_bulb/tree/avea_server
@@ -106,6 +106,8 @@ AveaBulbAccessory.prototype = {
             if ((peripheral.uuid == this.bluetoothid) || (this.bluetoothid == null)) {
                 this.perifSel = peripheral;
                 this.log("UUID matches!");
+                Noble.stopScanning();
+                this.scanning = false;
                 this.bulb = new AveaBulb.Avea(this.perifSel);
                 this.bulb.connect();
             }
@@ -115,6 +117,8 @@ AveaBulbAccessory.prototype = {
                 this.log("Lost bulb appears again!");
                 this.perifSel = peripheral;
                 if (this.perifSel.state != "connected") {
+                    Noble.stopScanning();
+                    this.scanning = false;
                     this.bulb = new AveaBulb.Avea(this.perifSel);
                     this.bulb.connect();
                 } else {
@@ -313,7 +317,7 @@ AveaBulbAccessory.prototype = {
             //this.log("Old Brightness");
             this.setBrightness(oldState, function (error) { });
             callback(null);
-        }.bind(this), delay * ( 2 + count * 2));
+        }.bind(this), delay * (2 + count * 2));
     },
     // Required
     getOn: function (callback) {

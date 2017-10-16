@@ -80,8 +80,18 @@ This step is not required. If you have only one bulb, the first one detected wil
 This would mean that the Bluetooth ID is `87b6038e5f42`.
 
 
-
 \*Changing the `name` in `config.json` will create a new device instead of renaming the existing one in HomeKit. It's strongly recommended that you rename the bulb using a HomeKit app only. The name used for homebridge has nothing to do with the one used with the Avea App. It will be the name that shows up when the device appears in HomeKit.
+
+
+### Troubleshooting
+
+#### Error: Could not start scanning, state is unauthorized (not poweredOn)
+
+This error appears if the bluetooth library cannot find or access your bluetooth interface. This can happen if you're not running homebridge as root.
+
+To solve it you must have the setcap command installed and the use the following command
+
+    sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
 
 
 ---
@@ -162,9 +172,18 @@ Este paso no es necesario. Si sólo se tiene una bombilla, la primera en ser det
 Esto querría decir que el ID Bluetooth es `87b6038e5f42`.
 
 
-
 \*Cambiar el nombre `name` en `config.json` creará un nuevo dispositivo en vez de renombrar el existente en Homekit. Se recomienda que sólo se cambie el nombre de la bombilla usando una App de HomeKit. El nombre que utiliza homebridge no tiene nada que ver con el que utiliza la App de Avea. Es el nombre que aparece cuando se añade el dispositivo a HomeKit.
 
+
+### Solución de problemas
+
+#### Error: Could not start scanning, state is unauthorized (not poweredOn)
+
+Este error suele aparecer si la biblioteca de bluetooth no puede encontrar o acceder a la interfaz. Esto puede suceder si no se está ejecutando homebridge con privilegios de usuario root.
+
+Para solucionarlo se ha de tener instalado el comando setcap, y utilizar el siguiente comando
+
+    sudo setcap cap_net_raw+eip $(eval readlink -f `which node`)
 
 
 ## Copyright
