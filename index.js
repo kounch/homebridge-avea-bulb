@@ -89,10 +89,10 @@ AveaBulbAccessory.prototype = {
     // Noble State Change
     nobleStateChange: function (state) {
         if (state == "poweredOn") {
-            this.log("Starting Noble scan..");
+            this.log.debug("Starting Noble scan..");
             Noble.on('scanStop', function () {
                 setTimeout(function () {
-                    this.log('Restart from scan stop');
+                    this.log.debug('Restart from scan stop');
                     this.startScanningWithTimeout();
                 }.bind(this), 2500);
             }.bind(this));
@@ -100,7 +100,7 @@ AveaBulbAccessory.prototype = {
             this.startScanningWithTimeout();
             this.scanning = true;
         } else {
-            this.log("Noble state change to " + state + "; stopping scan.");
+            this.log.debug("Noble state change to " + state + "; stopping scan.");
             Noble.removeAllListeners('scanStop');
             Noble.stopScanning();
             this.scanning = false;
@@ -108,11 +108,11 @@ AveaBulbAccessory.prototype = {
     },
     // Noble Discovery
     nobleDiscovered: function (peripheral) {
-        this.log("Discovered:", peripheral.uuid);
+        this.log.info("Discovered:", peripheral.uuid);
         if (this.perifSel == null) {
             if ((peripheral.uuid == this.bluetoothid) || (this.bluetoothid == null)) {
                 this.perifSel = peripheral;
-                this.log("UUID matches!");
+                this.log.info("UUID matches!");
                 this.stopScanning();
                 this.scanning = false;
                 this.bulb = new AveaBulb.Avea(this.perifSel);
@@ -120,12 +120,12 @@ AveaBulbAccessory.prototype = {
                     this.onBulbConnect(error, peripheral);
                 }.bind(this));
             } else {
-                this.log("UUID not matching");
+                this.log.info("UUID not matching");
             }
         } else {
             // do a reconnect if uuid matches
             if (peripheral.uuid == this.bluetoothid) {
-                this.log("Lost bulb appears again!");
+                this.log.info("Lost bulb appears again!");
                 this.perifSel = peripheral;
                 if (this.perifSel.state != "connected") {
                     Noble.stopScanning();
@@ -135,16 +135,16 @@ AveaBulbAccessory.prototype = {
                         this.onBulbConnect(error, peripheral);
                     }.bind(this));
                 } else {
-                    this.log("Undefined state");
+                    this.log.info("Undefined state");
                 }
             } else {
-                this.log("This is not the bulb you are looking for");
+                this.log.info("This is not the bulb you are looking for");
             }
         }
     },
     // Noble Stop Scan
     nobleScanStop: function () {
-        this.log("ScanStop received");
+        this.log.debug("ScanStop received");
         if (this.perifSel == null && maxNoOfSeqScans > noOfSeqScans++) {
             //Retry scan
             setTimeout(function () {
@@ -159,7 +159,7 @@ AveaBulbAccessory.prototype = {
         Noble.startScanning(serviceUUID, false);
         setTimeout(function () {
             if (Noble.listenerCount('discover') == 0) { return; }
-            this.log('Discovery timeout');
+            this.log.debug('Discovery timeout');
             Noble.stopScanning();
             this.scanning = false;
         }.bind(this), 12500);
@@ -173,7 +173,7 @@ AveaBulbAccessory.prototype = {
     },
     onBulbConnect(error, peripheral) {
         if (error) {
-            this.log("Connecting to " + peripheral.address + " failed: " + error);
+            this.log.error("Connecting to " + peripheral.address + " failed: " + error);
             this.onDisconnect(error, peripheral);
             return;
         }
@@ -181,7 +181,7 @@ AveaBulbAccessory.prototype = {
     },
     onDisconnect(error, peripheral) {
         peripheral.removeAllListeners();
-        this.log("Disconnected");
+        this.log.info("Disconnected");
         this.nobleDiscovered(peripheral);
     },
     RGBtoHSV: function (R, G, B) {
@@ -286,10 +286,10 @@ AveaBulbAccessory.prototype = {
             if (posValue == true) {
                 //Saturation + Value: 0-100 -> 0-1
                 var myRGBW = this.HSVtoRGBW(this.Hue, this.Saturation / 100.0, this.Brightness / 100.0);
-                //this.log("Send to light WRGB:", myRGBW[3], myRGBW[0], myRGBW[1], myRGBW[2]);
+                this.log.debug("Send to light WRGB:", myRGBW[3], myRGBW[0], myRGBW[1], myRGBW[2]);
                 this.bulb.setColor(new AveaBulb.Color(myRGBW[3], myRGBW[0], myRGBW[1], myRGBW[2]), 0x00f);
             } else {
-                //this.log("Send to light:", off);
+                this.log.debug("Send to light: Off");
                 this.bulb.setColor(new AveaBulb.Color(0x000, 0x000, 0x000, 0x000), 0x4ff);
                 this.bChangeSth = false;
             }
@@ -310,7 +310,7 @@ AveaBulbAccessory.prototype = {
                 var myGreen = parseInt(data[1].target.green);
                 var myBlue = parseInt(data[1].target.blue);
                 var myWhite = parseInt(data[1].target.white);
-                //this.log("RGBW:", myRed, myGreen, myBlue, myWhite);
+                this.log.debug("RGBW:", myRed, myGreen, myBlue, myWhite);
                 //Brightness 0-4095 -> 0-100
                 var myBrightness = parseInt(data[2] * 100 / 4095);
                 //Hue
@@ -320,7 +320,7 @@ AveaBulbAccessory.prototype = {
                 var mySaturation = myHSV[1] * 100.0;
                 //Not used
                 var myValue = myHSV[2];
-                //this.log("HSB:", myHue, mySaturation, myBrightness);
+                this.log.debug("HSB:", myHue, mySaturation, myBrightness);
                 //Calculate Power State
                 var bCheckColor = ((myWhite == 0) && (myRed == 0) && (myGreen == 0) && (myBlue == 0));
                 var myPowerOn = true;
@@ -342,7 +342,7 @@ AveaBulbAccessory.prototype = {
     identify: function (callback) {
         var delay = 500;
         var count = 3;
-        this.log("Identify requested!");
+        this.log.debug("Identify requested!");
         var oldState = this.Brightness;
         this.getBrightness(function (error, curBright) {
             if (!error) {
@@ -351,17 +351,17 @@ AveaBulbAccessory.prototype = {
         });
         for (var i = 0; i < count; i++) {
             setTimeout(function () {
-                //this.log("Off");
+                this.log.debug("Off");
                 this.setBrightness(0, function (error) { });
             }.bind(this), delay * (1 + i * 2));
 
             setTimeout(function () {
-                //this.log("On");
+                this.log.debug("On");
                 this.setBrightness(100, function (error) { });
             }.bind(this), delay * (2 + i * 2));
         }
         setTimeout(function () {
-            //this.log("Old Brightness");
+            this.log.debug("Old Brightness");
             this.setBrightness(oldState, function (error) { });
             callback(null);
         }.bind(this), delay * (2 + count * 2));
@@ -373,7 +373,7 @@ AveaBulbAccessory.prototype = {
                 callback(error, this.On);
             } else {
                 this.On = powerOn;
-                this.log("getOn :", this.On);
+                this.log.debug("getOn :", this.On);
                 callback(null, this.On);
             }
         }.bind(this));
@@ -382,7 +382,7 @@ AveaBulbAccessory.prototype = {
         if (value === undefined) {
             callback();
         } else {
-            this.log("setOn from/to:", this.On, value);
+            this.log.debug("setOn from/to:", this.On, value);
             var oldState = this.On;
             this.On = value;
             if ((value == false) || (this.bChangeSth == false)) {
@@ -406,7 +406,7 @@ AveaBulbAccessory.prototype = {
                 callback(error, this.Brightness);
             } else {
                 this.Brightness = brightness;
-                this.log("getBrightness:", this.Brightness);
+                this.log.debug("getBrightness:", this.Brightness);
                 callback(null, this.Brightness);
             }
         }.bind(this));
@@ -415,7 +415,7 @@ AveaBulbAccessory.prototype = {
         if (value === undefined) {
             callback();
         } else {
-            this.log("setBrightness from/to:", this.Brightness, value);
+            this.log.debug("setBrightness from/to:", this.Brightness, value);
             //Brightness 0-100 -> 0-4095
             var brightValue = parseInt(value * 40.95);
             if ((this.perifSel != null) && (this.perifSel.state == "connected") && (this.bulb.connected == true)) {
@@ -436,7 +436,7 @@ AveaBulbAccessory.prototype = {
                 callback(error, this.Hue);
             } else {
                 this.Hue = hue;
-                this.log("getHue:", this.Hue);
+                this.log.debug("getHue:", this.Hue);
                 callback(null, this.Hue);
             }
         }.bind(this));
@@ -445,7 +445,7 @@ AveaBulbAccessory.prototype = {
         if (value === undefined) {
             callback();
         } else {
-            this.log("setHue from/to:", this.Hue, value);
+            this.log.debug("setHue from/to:", this.Hue, value);
             var oldState = this.Hue;
             this.bChangeSth = true;
             this.Hue = value;
@@ -465,7 +465,7 @@ AveaBulbAccessory.prototype = {
                 callback(error, this.Saturation);
             } else {
                 this.Saturation = saturation;
-                this.log("getSaturation:", this.Saturation);
+                this.log.debug("getSaturation:", this.Saturation);
                 callback(null, this.Saturation);
             }
         }.bind(this));
@@ -474,7 +474,7 @@ AveaBulbAccessory.prototype = {
         if (value === undefined) {
             callback();
         } else {
-            this.log("setSaturation from/to:", this.Saturation, value);
+            this.log.debug("setSaturation from/to:", this.Saturation, value);
             var oldState = this.Saturation;
             this.bChangeSth = true;
             this.Saturation = value;
@@ -489,7 +489,7 @@ AveaBulbAccessory.prototype = {
         }
     },
     getName: function (callback) {
-        this.log("getName :", this.name);
+        this.log.debug("getName :", this.name);
         callback(null, this.name);
     },
 
