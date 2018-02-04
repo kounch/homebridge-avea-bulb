@@ -110,6 +110,8 @@ AveaBulbAccessory.prototype = {
                 this.scanning = false;
                 this.bulb = new AveaBulb.Avea(this.perifSel);
                 this.bulb.connect();
+            } else {
+                this.log("UUID not matching");
             }
         } else {
             // do a reconnect if uuid matches
@@ -122,8 +124,10 @@ AveaBulbAccessory.prototype = {
                     this.bulb = new AveaBulb.Avea(this.perifSel);
                     this.bulb.connect();
                 } else {
-                    this.log("Undefined state");
+                    this.log("Undefined state");    
                 }
+            } else {
+                this.log("This is not the bulb you are looking for");
             }
         }
     },
