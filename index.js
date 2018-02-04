@@ -1,6 +1,6 @@
 /*
 homebridge-avea-bulb
-Version 1.0.3
+Version 1.1.0
 
 Avea bulb plugin for homebridge: https://github.com/nfarina/homebridge
 Using Node.js Avea Bulb Prototol: https://github.com/Marmelatze/avea_bulb/tree/avea_server
@@ -90,11 +90,12 @@ AveaBulbAccessory.prototype = {
     nobleStateChange: function (state) {
         if (state == "poweredOn") {
             this.log("Starting Noble scan..");
-            Noble.startScanning(serviceUUID, false);
+            this.startScanningWithTimeout();
             this.scanning = true;
             Noble.on("discover", this.nobleDiscovered.bind(this));
         } else {
             this.log("Noble state change to " + state + "; stopping scan.");
+            Noble.removeAllListeners('scanStop');
             Noble.stopScanning();
             this.scanning = false;
         }
@@ -106,10 +107,12 @@ AveaBulbAccessory.prototype = {
             if ((peripheral.uuid == this.bluetoothid) || (this.bluetoothid == null)) {
                 this.perifSel = peripheral;
                 this.log("UUID matches!");
-                Noble.stopScanning();
+                this.stopScanning();
                 this.scanning = false;
                 this.bulb = new AveaBulb.Avea(this.perifSel);
-                this.bulb.connect();
+                this.bulb.connect(function (error) {
+                    this.onBulbConnect(error, peripheral);
+                }.bind(this));
             } else {
                 this.log("UUID not matching");
             }
@@ -122,9 +125,11 @@ AveaBulbAccessory.prototype = {
                     Noble.stopScanning();
                     this.scanning = false;
                     this.bulb = new AveaBulb.Avea(this.perifSel);
-                    this.bulb.connect();
+                    this.bulb.connect(function (error) {
+                        this.onBulbConnect(error, peripheral);
+                    }.bind(this));
                 } else {
-                    this.log("Undefined state");    
+                    this.log("Undefined state");
                 }
             } else {
                 this.log("This is not the bulb you are looking for");
@@ -136,10 +141,48 @@ AveaBulbAccessory.prototype = {
         this.log("ScanStop received");
         if (this.perifSel == null && maxNoOfSeqScans > noOfSeqScans++) {
             //Retry scan
-            Noble.startScanning(serviceUUID, false);
+            setTimeout(function () {
+                this.log.debug('Retry from scan stop');
+                this.startScanningWithTimeout();
+            }.bind(this), 2500);
         } else {
             this.scanning = false;
         }
+    },
+    // Noble Discover
+    nobleOnDiscover(peripheral) {
+        this.log("Discovered");
+        this.log("Found " + peripheral.address + " (RSSI " + peripheral.rssi + "dB)");
+        //this.stopScanning();
+    },
+    startScanningWithTimeout() {
+        Noble.startScanning(serviceUUID, false);
+        setTimeout(function () {
+            if (Noble.listenerCount('discover') == 0) { return; }
+            this.log('Discovery timeout');
+            Noble.stopScanning();
+            this.scanning = false;
+        }.bind(this), 12500);
+    },
+    stopScanning() {
+        Noble.removeListener('discover', this.NobleOnDiscover)
+        if (Noble.listenerCount('discover') == 0) {
+            Noble.removeAllListeners('scanStop');
+            Noble.stopScanning();
+        }
+    },
+    onBulbConnect(error, peripheral) {
+        if (error) {
+            this.log("Connecting to " + peripheral.address + " failed: " + error);
+            this.onDisconnect(error, peripheral);
+            return;
+        }
+        this.log.debug("Connected to " + peripheral.address);
+    },
+    onDisconnect(error, peripheral) {
+        peripheral.removeAllListeners();
+        this.log("Disconnected");
+        this.nobleOnDiscover(peripheral);
     },
     RGBtoHSV: function (R, G, B) {
         //Input and result scale
@@ -253,8 +296,8 @@ AveaBulbAccessory.prototype = {
             callback(null);
         } else {
             if (!this.scanning) {
-                Noble.startScanning(serviceUUID, false)
-            };
+                this.startScanningWithTimeout();
+            }
             callback(new Error("Device not Ready"));
         }
     },
@@ -290,8 +333,8 @@ AveaBulbAccessory.prototype = {
             });
         } else {
             if (!this.scanning) {
-                Noble.startScanning(serviceUUID, false)
-            };
+                this.startScanningWithTimeout();
+            }
             callback(new Error("Device not Ready"));
         }
     },
@@ -381,7 +424,7 @@ AveaBulbAccessory.prototype = {
                 callback(null);
             } else {
                 if (!this.scanning) {
-                    Noble.startScanning(serviceUUID, false)
+                    this.startScanningWithTimeout();
                 };
                 callback(new Error("Device not Ready"));
             }
@@ -486,6 +529,7 @@ AveaBulbAccessory.prototype = {
         //Initialise the Noble service for talking to the bulb
         Noble.on('stateChange', this.nobleStateChange.bind(this));
         Noble.on('scanStop', this.nobleScanStop.bind(this));
+        Noble.on('discover', this.nobleOnDiscover.bind(this));
 
         return [informationService, this.service];
     }
