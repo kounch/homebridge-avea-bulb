@@ -90,9 +90,15 @@ AveaBulbAccessory.prototype = {
     nobleStateChange: function (state) {
         if (state == "poweredOn") {
             this.log("Starting Noble scan..");
+            Noble.on('scanStop', function () {
+                setTimeout(function () {
+                    this.log('Restart from scan stop');
+                    this.startScanningWithTimeout();
+                }.bind(this), 2500);
+            }.bind(this));
+            Noble.on("discover", this.nobleDiscovered.bind(this));
             this.startScanningWithTimeout();
             this.scanning = true;
-            Noble.on("discover", this.nobleDiscovered.bind(this));
         } else {
             this.log("Noble state change to " + state + "; stopping scan.");
             Noble.removeAllListeners('scanStop');
@@ -149,12 +155,6 @@ AveaBulbAccessory.prototype = {
             this.scanning = false;
         }
     },
-    // Noble Discover
-    nobleOnDiscover(peripheral) {
-        this.log("Discovered");
-        this.log("Found " + peripheral.address + " (RSSI " + peripheral.rssi + "dB)");
-        //this.stopScanning();
-    },
     startScanningWithTimeout() {
         Noble.startScanning(serviceUUID, false);
         setTimeout(function () {
@@ -165,7 +165,7 @@ AveaBulbAccessory.prototype = {
         }.bind(this), 12500);
     },
     stopScanning() {
-        Noble.removeListener('discover', this.NobleOnDiscover)
+        Noble.removeListener('discover', this.nobleDiscovered.bind(this))
         if (Noble.listenerCount('discover') == 0) {
             Noble.removeAllListeners('scanStop');
             Noble.stopScanning();
@@ -182,7 +182,7 @@ AveaBulbAccessory.prototype = {
     onDisconnect(error, peripheral) {
         peripheral.removeAllListeners();
         this.log("Disconnected");
-        this.nobleOnDiscover(peripheral);
+        this.nobleDiscovered(peripheral);
     },
     RGBtoHSV: function (R, G, B) {
         //Input and result scale
@@ -529,7 +529,6 @@ AveaBulbAccessory.prototype = {
         //Initialise the Noble service for talking to the bulb
         Noble.on('stateChange', this.nobleStateChange.bind(this));
         Noble.on('scanStop', this.nobleScanStop.bind(this));
-        Noble.on('discover', this.nobleOnDiscover.bind(this));
 
         return [informationService, this.service];
     }
