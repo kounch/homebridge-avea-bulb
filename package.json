@@ -20,7 +20,7 @@
   },
   "dependencies": {
     "mutex-promise": "^0.1.0",
-    "noble": "git+https://git@github.com/lockitron/noble.git",
+    "noble": "git+https://git@github.com/kounch/noble.git",
     "promise-queue": "^2.2.2",
     "winston": "^2.1.1"
   },
