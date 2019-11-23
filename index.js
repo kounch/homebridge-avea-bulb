@@ -36,7 +36,7 @@ Sample configuration file
 
 
 var Service, Characteristic;
-var Noble = require("noble");
+var Noble = require("@abandonware/noble");
 var AveaBulb = require("./lib");
 
 //Limits for Scanning
