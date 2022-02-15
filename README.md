@@ -1,11 +1,11 @@
 # homebridge-avea-bulb
 Avea Bulb Plugin for [HomeBridge](https://github.com/nfarina/homebridge)
 
-
 ---
 
-
 ## English
+
+**WARNING!! This software is no longer actively maintained. Archived repository**
 
 ### What this plugin does
 Using BLE, it adds Homekit support for Elgato Avea Bulbs.
@@ -98,6 +98,8 @@ To solve it you must have the setcap command installed and the use the following
 
 
 ## Castellano
+
+**¡AVISO!! Este software ya no se mantiene activamente. Repositorio archivado**
 
 ### Para qué sirve este plugin
 Añade soporte para Homekit a bombillas Elgato Avea, usando bluetooth (BLE).
